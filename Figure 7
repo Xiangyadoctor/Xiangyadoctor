@@ -1,0 +1,39 @@
+indata<-read.table(file = "RCC2.txt",sep = "\t",header = T,check.names = F)
+classLabel<-read.table(file = "group.txt",sep = "\t",header = T,check.names = F)
+indata=t(indata)
+colnames(indata)=indata[1,]
+
+indata=indata[-1,]
+classLabel=classLabel[c(1:189),]
+rownames(classLabel)=classLabel[,1]
+classLabel=classLabel[,-1]
+  sampleIdsCase<-which(classLabel$RCC2=="Low");
+  sampleIdsControl<-which(classLabel$RCC2=="High");
+  probeFC<-rep(0,nrow(indata))
+  for(i in 1:nrow(indata))
+  {
+    probeFC[i]<-mean(as.numeric(as.vector(indata[i,sampleIdsCase])))/mean(as.numeric(as.vector(indata[i,sampleIdsControl])));
+  }
+  probeFC<-log(probeFC,base=2);
+  result<-probeFC;
+
+RCC2=cbind(rownames(indata),result)
+colnames(RCC2)[1]="SYMBOL"
+colnames(RCC2)[2]="foldChange"
+write.table(RCC2, file = "RCC2_FC.txt", sep = "\t", row.names = F,col.names = T, quote = F)
+
+RCC2_FC=read.table(file = "RCC2_FC.txt",sep = "\t",header = T,check.names = F)
+
+library(clusterProfiler)
+dim(RCC2_FC)
+
+
+gene<-RCC2_FC
+
+
+geneList<-gene$foldChange 
+names(geneList)=gene$SYMBOL
+geneList=sort(geneList,decreasing = T) 
+gmt<-read.gmt("c6.all.v7.2.symbols.gmt") 
+RCC2_GSEA<-GSEA(geneList,TERM2GENE = gmt,pvalueCutoff=1)
+write.table(RCC2_GSEA@result, file = "RCC2_GSEA.txt", sep = "\t", row.names = F,col.names = T, quote = F)
