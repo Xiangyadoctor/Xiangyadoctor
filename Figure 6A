@@ -1,0 +1,18 @@
+library(openxlsx)
+library(ggplot2)
+library(stringr)
+library(enrichplot)
+library(clusterProfiler)
+library(DOSE)
+library(ggnewscale)
+info <- read.xlsx( "/Users/RCC2/Downloads/KEGG_GO/RCC2-related.xlsx", rowNames = F,colNames = T)
+GO_database <- 'org.Hs.eg.db' 
+gene <- bitr(info$gene_symbol,fromType = 'SYMBOL',toType = 'ENTREZID',OrgDb = GO_database)
+GO<-enrichGO( gene$ENTREZID,
+              OrgDb = GO_database,
+              keyType = "ENTREZID",
+              ont = "ALL",）
+              pvalueCutoff = 0.05,
+              qvalueCutoff = 0.05,
+              readable = T
+dotplot(GO, split="ONTOLOGY")+facet_grid(ONTOLOGY~., scale="free")
